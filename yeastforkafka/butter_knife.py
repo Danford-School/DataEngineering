@@ -8,6 +8,16 @@ import lxml
 import re
 import json
 
+
+#################################################
+# Danford Note:
+# This isn't working because it is taking every character because it doesn't know that words are words, it just sees
+# characters. Beautiful Soup should really have a solution for this.
+# if not, we can pull out whitespace-divided characters and turn them into strings and either use them on the fly,
+# or put them into an array or dict.
+#################################################
+
+
 url = "http://rbi.ddns.net/getStopEvents"
 html = urlopen(url)
 
@@ -24,27 +34,39 @@ date_ish = re.search(r'\d{4}-\d{2}-\d{2}', close_to_the_date)
 # There are 23 columns
 all_trips = soup.find_all('h3')
 clean_trips = BeautifulSoup(str(all_trips), "lxml").get_text()
-# print(clean_trips)
+cleaner_trips = clean_trips.split()
+trip_num_list = []
+for trippy in cleaner_trips:
+    if trippy.isnumeric():
+        trip_num_list.append(re.search(r'\d{9}', trippy))
 
 
-header_storage = []
 json_out = []
 count = 0
 
-for trips in clean_trips:
-#    header_storage.clear()
-#    trip_number = re.search(r'\d{9}', trips)
-#   print(trip_number)
+for trips in trip_num_list:
     records = soup.find_all('tr')
-    clean_records = BeautifulSoup(str(records), "lxml").get_text()
+    dirty_records = BeautifulSoup(str(records), "lxml").get_text()
+    messy_records = dirty_records.replace('\n', " ")
+    stinky_records = messy_records.replace("[", " ")
+    smudged_records = stinky_records.replace("]", " ")
+    clean_records = smudged_records.split()
 
     for record in clean_records:
 
         headers = soup.find_all('th')
-        clean_headers = BeautifulSoup(str(headers), "lxml").get_text()
+        dirty_headers = BeautifulSoup(str(headers), "lxml").get_text()
+        messy_headers = dirty_headers.replace(",", " ")
+        stinky_headers = messy_headers.replace("[", " ")
+        smudged_headers = stinky_headers.replace("]", " ")
+        clean_headers = smudged_headers.split()
 
         record_data = soup.find_all('td')
-        clean_record_data = BeautifulSoup(str(record_data), "lxml").get_text()
+        dirty_record_data = BeautifulSoup(str(record_data), "lxml").get_text()
+        messy_record_data = dirty_record_data.replace(",", " ")
+        stinky_record_data = messy_record_data.replace("]", " ")
+        smudged_record_data = stinky_record_data.replace("[", " ")
+        clean_record_data = smudged_record_data.split()
 
         json_out.append("{\n")
 #        json_out.append("date : " + str(date_ish) + ",\n")
@@ -54,7 +76,7 @@ for trips in clean_trips:
                 count = 0
                 with open("stops"+today+".json", "a") as fw:
                     json.dump(json_out, fw)
-            json_out.append(header_storage[count] + " : " + data + ",\n")
-            print(header_storage)
+            json_out.append(clean_headers[count] + " : " + data + ",\n")
+            print(clean_headers[count])
             count += 1
         json_out.append("}\n")
