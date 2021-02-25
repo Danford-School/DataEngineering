@@ -23,10 +23,14 @@ html = urlopen(url)
 
 soup = BeautifulSoup(html, 'lxml')
 
+date_ish = 0
 today = datetime.date.today().strftime("%Y%m%d")
 almost_the_date = soup.find("h1")
 close_to_the_date = BeautifulSoup(str(almost_the_date), "lxml").get_text()
-date_ish = re.search(r'\d{4}-\d{2}-\d{2}', close_to_the_date)
+closer_to_the_date = close_to_the_date.split()
+for stuff in closer_to_the_date:
+    if stuff.isnumeric():
+        date_ish = re.search(r'\d{4}-\d{2}-\d{2}', close_to_the_date)
 
 # h1 contains the date
 # h3 contains the trip number
@@ -68,15 +72,15 @@ for trips in trip_num_list:
         smudged_record_data = stinky_record_data.replace("[", " ")
         clean_record_data = smudged_record_data.split()
 
-        json_out.append("{\n")
-#        json_out.append("date : " + str(date_ish) + ",\n")
-#        json_out.append("trip_number : " + str(trip_number) + ",\n")
+        json_out.append("{")
+        json_out.append("date : " + str(date_ish) + ",")
+        json_out.append("trip_number : " + str(trips) + ",")
         for data in clean_record_data:
             if not count < 23:
                 count = 0
                 with open("stops"+today+".json", "a") as fw:
-                    json.dump(json_out, fw)
-            json_out.append(clean_headers[count] + " : " + data + ",\n")
+                    json.dump(json_out, fw, separators=(',', ':'))
+            json_out.append(clean_headers[count] + " : " + data + ",")
             print(clean_headers[count])
             count += 1
-        json_out.append("}\n")
+        json_out.append("}")
