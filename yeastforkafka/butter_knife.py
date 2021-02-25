@@ -42,7 +42,7 @@ cleaner_trips = clean_trips.split()
 trip_num_list = []
 for trippy in cleaner_trips:
     if trippy.isnumeric():
-        trip_num_list.append(re.search(r'\d{9}', trippy))
+        trip_num_list.append(re.search(trippy)
 
 
 json_out = []
