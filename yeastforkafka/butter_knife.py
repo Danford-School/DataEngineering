@@ -30,7 +30,7 @@ close_to_the_date = BeautifulSoup(str(almost_the_date), "lxml").get_text()
 closer_to_the_date = close_to_the_date.split()
 for stuff in closer_to_the_date:
     if stuff.isnumeric():
-        date_ish = re.search(r'\d{4}-\d{2}-\d{2}', close_to_the_date)
+        date_ish = stuff
 
 # h1 contains the date
 # h3 contains the trip number
@@ -42,7 +42,7 @@ cleaner_trips = clean_trips.split()
 trip_num_list = []
 for trippy in cleaner_trips:
     if trippy.isnumeric():
-        trip_num_list.append(re.search(trippy)
+        trip_num_list.append(trippy)
 
 
 json_out = []
