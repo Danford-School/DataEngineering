@@ -77,7 +77,10 @@ for trips in trip_num_list:
                 once = True
                 print("I at least started doing a thing!")
         if little_count == 6 and (len(clean_record_data[big_count + 1]) != 5):
+            json_out.append(clean_headers[little_count] + " : ")
             little_count += 1
+            big_count += 1
+            continue
         json_out.append(clean_headers[little_count] + " : " + clean_record_data[big_count])
         little_count += 1
         big_count += 1
