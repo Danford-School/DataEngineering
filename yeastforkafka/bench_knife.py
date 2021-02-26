@@ -93,7 +93,7 @@ with open("stops"+today+".csv", "a", newline='') as fw:
         if little_count >= 24:
             print(stored_direction + " with " + output[4])
             print(output[0] + " with " + stored_vehicle)
-            if not (stored_direction == output[5]) or not (output[0] == stored_vehicle):
+            if (stored_direction != output[4]) or (output[0] != stored_vehicle):
                 stored_direction = output[4]
                 stored_vehicle = output[0]
                 trip_no += 1
