@@ -22,6 +22,14 @@ html = urlopen(url)
 soup = BeautifulSoup(html, 'lxml')
 type(soup)
 
+all_trips = soup.find_all('h3')
+clean_trips = BeautifulSoup(str(all_trips), 'lxml').get_text()
+cleaner_trips = clean_trips.split()
+trip_num_list = []
+for trippy in cleaner_trips:
+    if trippy.isnumeric():
+        trip_num_list.append(trippy)
+
 rows = soup.find_all('tr')
 list_rows = []
 for row in rows[1:]:
@@ -31,47 +39,61 @@ for row in rows[1:]:
     clean2 = (re.sub(clean, '',str_cells))
     list_rows.append(clean2)
 
-df = pd.DataFrame(list_rows)
-df = df[0].str.split(',', expand=True)
-
 col_labels = soup.find_all('th')
 
-all_header = []
 col_str = str(col_labels)
 text = BeautifulSoup(col_str, "lxml").get_text()
 # get all of our individual columns
 x = text.split(',')
-# strip the first and last [ ] from our lislt
+# strip the first and last [ ] from our list
 x[0] = x[0].strip('[')
 x[len(x)-1] = x[len(x)-1].strip(']')
+x = list(map(str.strip, x))
 
 # get rid of all duplicates (definitely overkill but works)
 header_set = set()
-result = []
+headers = []
 temp = ''
 for item in x:
     item = item.strip(' ')
     if item not in header_set:
         header_set.add(item)
-        temp = temp + str(item) + ","
-        
-# get rid of the last ',' so we don't have an extra column at the end
-temp = temp[:-1]
-# put the string in a list then to a dataframe 
-# (since that's what we did in the lab so I can copy and paste)
-result.append(temp)
-df2 = pd.DataFrame(result)
+        headers.append(item)
 
-df2 = df2[0].str.split(',', expand=True)
+###############
+headers.append('trip_id')
+headers.append('date')
 
-frames = [df2, df]
-df = pd.concat(frames)
-# remove all rows that are 'empty' aka contain [] as the input in vehicle_number column aka column 0
-#df = df[~df[0].isin(['[]'])]
+data_list = []
+for row in list_rows:
+    row = row + ', , '
+    data_list.append(row.split(','))
+    
+
+df = pd.DataFrame(columns=headers, data=data_list)
+#df = df[0].str.split(',', expand=True)
+
+almost_the_date = soup.find("h1")
+close_to_the_date = BeautifulSoup(str(almost_the_date), "lxml").get_text()
+closer_to_the_date = close_to_the_date.split()
+date_ish = str(closer_to_the_date[4])
+
 # remove the [ character from all items in vehicle_number aka column 0
-df[0] = df[0].str.strip('[')
+df['vehicle_number'] = df['vehicle_number'].str.strip('[')
 # remove the ] character from all items in schedule_status aka column 22
-df[22] = df[22].str.strip(']')
+df['schedule_status'] = df['schedule_status'].str.strip(']')
+
+trip_list_index = 0
+for index, row in df.iterrows():
+    if row['vehicle_number'] == ']':
+        #print("ahhhhh")
+        trip_list_index += 1
+        #df.drop(row)
+    else:
+        row['trip_id'] = trip_num_list[trip_list_index]
+        row['date'] = date_ish
+
+df = df[df['vehicle_number'] != ']']
 
 json_data = df.to_json(orient="records")
 parsed = json.loads(json_data)
